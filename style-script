@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Función para manejar errores
+handle_error() {
+    echo "Error: $1"
+    exit 1
+}
+
+# Instalar dependencias de Stylelint
+npm install --save-dev \
+  stylelint \
+  stylelint-config-standard-scss \
+  stylelint-config-prettier-scss \
+  @stylistic/stylelint-plugin || handle_error "Fallo en la instalación de paquetes"
+
+# Verificar si existe package.json
+if [ ! -f "package.json" ]; then
+    npm init -y || handle_error "No se pudo crear package.json"
+fi
+
+# Agregar scripts al package.json
+npm pkg set scripts.lint:css="stylelint '**/*.{css,scss}'" \
+           scripts.lint:css:fix="stylelint '**/*.{css,scss}' --fix" || handle_error "No se pudieron agregar scripts"
+
+# Crear archivo .stylelintrc.json
+cat > .stylelintrc.json << EOF
+{
+  "plugins": ["@stylistic/stylelint-plugin"],
+  "extends": [
+    "stylelint-config-standard-scss",
+    "stylelint-config-prettier-scss"
+  ],
+  "rules": {
+    "@stylistic/indentation": 2,
+    "@stylistic/declaration-colon-space-after": "always",
+    "@stylistic/declaration-colon-space-before": "never",
+    "@stylistic/value-list-comma-space-after": "always",
+    "@stylistic/declaration-block-trailing-semicolon": "always",
+    "no-descending-specificity": null
+  }
+}
+EOF
+
+echo "✅ Configuración de Stylelint completada exitosamente"
